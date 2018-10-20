@@ -33,9 +33,18 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="onSelectContactPressed"
-                android:text="Button"
+                android:text="Contacts"
                 tools:text="Contacts" />
+
         </LinearLayout>
+
+        <ListView
+            android:id="@+id/messagesList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:stackFromBottom="true"
+            android:transcriptMode="alwaysScroll" />
 
         <EditText
             android:id="@+id/messageText"

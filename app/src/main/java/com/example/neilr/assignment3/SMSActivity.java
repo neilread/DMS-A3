@@ -1,99 +1,39 @@
-package android.dms.aut.ac.nz.myapplication;
+package com.example.neilr.assignment3;
 
 import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
-import android.provider.Telephony;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.vision.barcode.Barcode;
-
-import java.sql.Date;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
-import static android.dms.aut.ac.nz.myapplication.R.string.error_invalid_ph_number;
-
-public class SendSmsActivity extends Activity {
+public class SMSActivity extends Activity {
     public static final int SEND_SMS_REQUEST = 1;
     public static final int REQUEST_CONTACT = 2;
-
-    private ArrayAdapter<String> messagesAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_sms);
         getPermissions();
-        ListView messages = (ListView)findViewById(R.id.messagesList);
-        messagesAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_item, new ArrayList<String>());
-
-        // Here, you set the data in your ListView
-        messages.setAdapter(messagesAdapter);
-        updateMessagesList("");
-
-        EditText pNumText = (EditText) findViewById(R.id.phoneText);
-
-        pNumText.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            public void afterTextChanged(Editable s){
-                EditText pNumText = (EditText) findViewById(R.id.phoneText);
-                Editable pNum = pNumText.getText();
-                updateMessagesList(pNum.toString());
-                Toast.makeText(getBaseContext(), "Updated messages for " + pNum, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
-
-    private void updateMessagesList(String phoneNum){
-        messagesAdapter.clear();
-        Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), new String[]{Telephony.TextBasedSmsColumns.DATE, Telephony.TextBasedSmsColumns.BODY}, "address = ?", new String[]{phoneNum}, "date ASC");
-        if (cursor.moveToFirst()) { // must check the result to prevent exception
-            do {
-                String text = new Date(cursor.getLong(0)).toString() + ": " + cursor.getString(1);
-                Log.d("myTag", text);
-                messagesAdapter.add(text);
-            } while (cursor.moveToNext());
-        } else {
-            messagesAdapter.add("No messages");
-        }
-    }
+    //212556333
 
     public void onSelectContactPressed(View view){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
@@ -139,7 +79,7 @@ public class SendSmsActivity extends Activity {
                 if (resultCode == Activity.RESULT_OK) {
                     String pNumber = readPhoneNumber(data);
                     if(pNumber != null){
-                        EditText pNumberField = (EditText) findViewById(R.id.phoneText);
+                        EditText pNumberField = findViewById(R.id.phoneText);
                         pNumberField.setText(pNumber, TextView.BufferType.EDITABLE);
                     }
                 }
@@ -163,10 +103,6 @@ public class SendSmsActivity extends Activity {
                     switch (getResultCode()) {
                         case Activity.RESULT_OK:
                             Toast.makeText(getBaseContext(), getString(R.string.sms_sent), Toast.LENGTH_SHORT).show();
-
-                            // Empty message text
-                            TextView messageText = (TextView) findViewById(R.id.messageText);
-                            messageText.setText("");
                             break;
                         case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                             Toast.makeText(getBaseContext(), getString(R.string.error_send_failed), Toast.LENGTH_SHORT).show();
@@ -199,8 +135,8 @@ public class SendSmsActivity extends Activity {
             }, new IntentFilter(getString(R.string.pi_sms_delivered)));
 
             SmsManager smsManager = SmsManager.getDefault();
-            EditText phoneNumber = (EditText) findViewById(R.id.phoneText);
-            EditText message = (EditText) findViewById(R.id.messageText);
+            EditText phoneNumber = findViewById(R.id.phoneText);
+            EditText message = findViewById(R.id.messageText);
             if (message.getText().toString().isEmpty()) {
                 Toast.makeText(getBaseContext(), getString(R.string.error_message_empty), Toast.LENGTH_SHORT).show();
             } else {
@@ -252,18 +188,15 @@ public class SendSmsActivity extends Activity {
         return hasPermission;
     }
 
-    public String parsePhoneNumber(String pNumber) throws IllegalArgumentException {
-    //    String parsed = pNumber.replaceAll(" ", "");
-        if(pNumber.startsWith("+")|| pNumber.startsWith("0")){
-            return pNumber;
+    public String parsePhoneNumber(String pNumber){
+        String parsed = pNumber.replaceAll(" ", "");
+        if(!parsed.startsWith("+")){
+            parsed = getText(R.string.default_country_code) + pNumber;
         }
-        else{
-            throw new IllegalArgumentException(getString(error_invalid_ph_number, pNumber));
+        if(!PhoneNumberUtils.isGlobalPhoneNumber(pNumber)){
+            throw new IllegalArgumentException(getString(R.string.error_invalid_ph_number, pNumber));
         }
 
-
-
-
-
+        return parsed;
     }
 }

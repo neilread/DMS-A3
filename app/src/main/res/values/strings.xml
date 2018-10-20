@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Assignment 3</string>
+    <string name="title_activity_maps">Current Place Details</string>
+    <string name="default_info_title">Default Location</string>
+    <string name="default_info_snippet">No places found, because location permission is disabled.</string>
+    <string name="option_get_place">Get place</string>
+    <string name="pick_place">Choose a place</string>
+    <string name="default_country_code">+64</string>
+    <string name="pi_sms_sent">SENT</string>
+    <string name="pi_sms_delivered">DELIVERED</string>
+    <string name="sms_sent">Message sent</string>
+    <string name="sms_delivered">Message Delivered</string>
+    <string name="error_invalid_ph_number">Invalid Phone Number \'%1$s\'</string>
+    <string name="error_message_empty">Message cannot be empty</string>
+    <string name="error_sms_not_delivered">SMS failed to deliver</string>
+    <string name="error_invalid_request_code">Request code %1$d is invalid</string>
+    <string name="error_send_failed">Message failed to send</string>
+    <string name="error_no_service">No service</string>
+    <string name="error_radio_off">Radio off</string>
+    <string name="error_null_pdu">Null PDU</string>
+</resources>
