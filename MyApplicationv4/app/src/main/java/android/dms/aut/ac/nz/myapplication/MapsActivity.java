@@ -116,21 +116,6 @@ public class MapsActivity extends AppCompatActivity
     }
 
     /**
-     * Sets up the options menu.
-     * @param menu The options menu.
-     * @return Boolean.
-     */
-
-
-    /**
-     * Handles a click on the menu option to get a place.
-     * @param item The menu item to handle.
-     * @return Boolean.
-     */
-
-
-
-    /**
      * Manipulates the map when it's available.
      * This callback is triggered when the map is ready to be used.
      */
@@ -249,17 +234,6 @@ public class MapsActivity extends AppCompatActivity
         }
         updateLocationUI();
     }
-
-    /**
-     * Prompts the user to select the current place from a list of likely places, and shows the
-     * current place on the map - provided the user has granted location permission.
-     */
-
-
-    /**
-     * Displays a form allowing the user to select a place from a list of likely places.
-     */
-
 
     /**
      * Updates the map's UI settings based on whether the user has granted location permission.

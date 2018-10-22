@@ -10,45 +10,41 @@
     <Button
 
 
-    android:id="@+id/map_btn"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_alignParentStart="true"
-    android:layout_alignParentLeft="true"
-    android:layout_alignParentTop="true"
-    android:layout_marginStart="285dp"
-    android:layout_marginLeft="145dp"
-    android:layout_marginTop="400dp"
-    android:onClick="showLocation"
-    android:text="Show Map" />
+        android:id="@+id/map_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="145dp"
+        android:layout_marginStart="285dp"
+        android:layout_marginTop="400dp"
+        android:onClick="showLocation"
+        android:text="@string/map_button" />
 
     <Button
 
 
-    android:id="@+id/location_btn"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_alignParentStart="true"
-    android:layout_alignParentLeft="true"
-    android:layout_alignParentTop="true"
-    android:layout_marginStart="145dp"
-    android:layout_marginLeft="145dp"
-    android:layout_marginTop="400dp"
+        android:id="@+id/location_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
 
-    android:text="Location" />
+        android:layout_alignTop="@+id/map_btn"
+        android:layout_centerHorizontal="true"
+        android:text="@string/location_button" />
 
     <Button
         android:id="@+id/msg_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="0dp"
         android:layout_marginLeft="145dp"
+        android:layout_marginStart="0dp"
         android:layout_marginTop="400dp"
         android:onClick="sendMessage"
-        android:text="Messages" />
+        android:text="@string/message_button" />
 
     <TextView
         android:id="@+id/textView"
@@ -57,7 +53,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
-        android:text="Location Coordinate" />
+        android:text="Location Coordinates" />
 
     <ImageView
         android:id="@+id/imageView3"

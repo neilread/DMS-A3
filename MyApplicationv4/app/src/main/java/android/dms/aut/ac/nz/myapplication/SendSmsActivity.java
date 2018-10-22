@@ -40,6 +40,9 @@ import java.util.List;
 
 import static android.dms.aut.ac.nz.myapplication.R.string.error_invalid_ph_number;
 
+/**
+ * Activity for sending and receiving messages via SMS
+ */
 public class SendSmsActivity extends Activity {
     public static final int SEND_SMS_REQUEST = 1;
     public static final int REQUEST_CONTACT = 2;
@@ -50,13 +53,10 @@ public class SendSmsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_sms);
-        getPermissions();
+
         ListView messages = (ListView)findViewById(R.id.messagesList);
         messagesAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_item, new ArrayList<String>());
-
-        // Here, you set the data in your ListView
         messages.setAdapter(messagesAdapter);
-        updateMessagesList("");
 
         EditText pNumText = (EditText) findViewById(R.id.phoneText);
 
@@ -72,29 +72,52 @@ public class SendSmsActivity extends Activity {
 
             }
 
+            /**
+             * Populates messages list with all texts received from associated phone number
+             */
             public void afterTextChanged(Editable s){
                 EditText pNumText = (EditText) findViewById(R.id.phoneText);
                 Editable pNum = pNumText.getText();
                 updateMessagesList(pNum.toString());
-                Toast.makeText(getBaseContext(), "Updated messages for " + pNum, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        /**
+         * Notifies user when text is received and adds it to the messages list
+         * if it is from the currently displayed phone number
+         */
+        SMSReceiver.bindListener(new SMSListener() {
+            @Override
+            public void messageReceived(SmsMessage message) {
+                EditText pNumText = (EditText) findViewById(R.id.phoneText);
+                String pNum = pNumText.getText().toString();
+                Toast.makeText(getBaseContext(), getString(R.string.sms_received, message.getDisplayOriginatingAddress()), Toast.LENGTH_SHORT).show();
+                if(pNum.equalsIgnoreCase(message.getOriginatingAddress())){
+                    messagesAdapter.add(message.getDisplayMessageBody());
+                }
             }
         });
     }
 
+    /**
+     * Populates messages list with received messages from passed
+     * phone number
+     * @param phoneNum
+     */
     private void updateMessagesList(String phoneNum){
         messagesAdapter.clear();
-        Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), new String[]{Telephony.TextBasedSmsColumns.DATE, Telephony.TextBasedSmsColumns.BODY}, "address = ?", new String[]{phoneNum}, "date ASC");
-        if (cursor.moveToFirst()) { // must check the result to prevent exception
+        // Gets all SMS messages in the inbox from the passed address, sorted by date in ascending order
+        Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), new String[]{Telephony.TextBasedSmsColumns.BODY}, "address = ?", new String[]{phoneNum}, "date ASC");
+        if (cursor.moveToFirst()) { // Checks result is not empty to avoid exception
             do {
-                String text = new Date(cursor.getLong(0)).toString() + ": " + cursor.getString(1);
-                Log.d("myTag", text);
-                messagesAdapter.add(text);
+                messagesAdapter.add(cursor.getString(0));
             } while (cursor.moveToNext());
         } else {
             messagesAdapter.add("No messages");
         }
     }
 
+    // Checks read contacts permission and opens contacts
     public void onSelectContactPressed(View view){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_CONTACT);
@@ -103,28 +126,29 @@ public class SendSmsActivity extends Activity {
         }
     }
 
+    // Opens contacts application to select a contact's phone number
     private void selectContact(){
         Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         startActivityForResult(intent, REQUEST_CONTACT);
     }
 
+    // Returns the phone number of a selected contact
     private String readPhoneNumber(Intent data) {
         Uri contactData = data.getData();
         Cursor c = managedQuery(contactData, null, null, null, null);
         if (c.moveToFirst()) {
             String id = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
             String hasPhone = c.getString(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
-            String name = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
             if (hasPhone.equals("1")) {
                 Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id,null, null);
                 phones.moveToFirst();
                 return phones.getString(phones.getColumnIndex("data1"));
             } else {
-                Toast.makeText(getBaseContext(), name + " has no phone number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), getString(R.string.error_contact_no_p_num), Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(getBaseContext(), "No contact selected", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getBaseContext(), getString(R.string.error_no_contact_selected), Toast.LENGTH_SHORT).show();
         }
 
         return null;
@@ -135,9 +159,12 @@ public class SendSmsActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
+            // Contact selected
             case (REQUEST_CONTACT) :
                 if (resultCode == Activity.RESULT_OK) {
                     String pNumber = readPhoneNumber(data);
+
+                    // Enters retrieved phone number in phone number field
                     if(pNumber != null){
                         EditText pNumberField = (EditText) findViewById(R.id.phoneText);
                         pNumberField.setText(pNumber, TextView.BufferType.EDITABLE);
@@ -147,6 +174,7 @@ public class SendSmsActivity extends Activity {
         }
     }
 
+    // Checks send sms permission and sends sms message
     public void onSendPressed(View view) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_REQUEST);
@@ -155,6 +183,7 @@ public class SendSmsActivity extends Activity {
         }
     }
 
+    // Sends message (in message field) to selected phone number (in phone number field) via sms
     public void sendMessage(){
         try {
             registerReceiver(new BroadcastReceiver() {
@@ -164,7 +193,7 @@ public class SendSmsActivity extends Activity {
                         case Activity.RESULT_OK:
                             Toast.makeText(getBaseContext(), getString(R.string.sms_sent), Toast.LENGTH_SHORT).show();
 
-                            // Empty message text
+                            // Empties message text field
                             TextView messageText = (TextView) findViewById(R.id.messageText);
                             messageText.setText("");
                             break;
@@ -199,12 +228,12 @@ public class SendSmsActivity extends Activity {
             }, new IntentFilter(getString(R.string.pi_sms_delivered)));
 
             SmsManager smsManager = SmsManager.getDefault();
-            EditText phoneNumber = (EditText) findViewById(R.id.phoneText);
-            EditText message = (EditText) findViewById(R.id.messageText);
-            if (message.getText().toString().isEmpty()) {
+            String phoneNumber = ((EditText) findViewById(R.id.phoneText)).getText().toString();
+            String message = ((EditText) findViewById(R.id.messageText)).getText().toString();
+            if (message.isEmpty()) {
                 Toast.makeText(getBaseContext(), getString(R.string.error_message_empty), Toast.LENGTH_SHORT).show();
             } else {
-                smsManager.sendTextMessage(parsePhoneNumber(phoneNumber.getText().toString()), null, message.getText().toString(), PendingIntent.getBroadcast(this, 0, new Intent(getString(R.string.pi_sms_sent)), 0), PendingIntent.getBroadcast(this, 0, new Intent(getString(R.string.pi_sms_delivered)), 0));
+                smsManager.sendTextMessage(parsePhoneNumber(phoneNumber), null, message, PendingIntent.getBroadcast(this, 0, new Intent(getString(R.string.pi_sms_sent)), 0), PendingIntent.getBroadcast(this, 0, new Intent(getString(R.string.pi_sms_delivered)), 0));
             }
         } catch (IllegalArgumentException ex){
             Toast.makeText(getBaseContext(), ex.getMessage(), Toast.LENGTH_SHORT).show();
@@ -220,7 +249,7 @@ public class SendSmsActivity extends Activity {
                 if(i >= 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED){
                     sendMessage();
                 } else {
-                    Toast.makeText(getBaseContext(), "Permission denied", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), getString(R.string.error_permission_denied), Toast.LENGTH_LONG).show();
                 }
 
                 break;
@@ -231,9 +260,8 @@ public class SendSmsActivity extends Activity {
                 if(i >= 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED){
                     selectContact();
                 } else {
-                    Toast.makeText(getBaseContext(), "Permission denied", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), getString(R.string.error_permission_denied), Toast.LENGTH_LONG).show();
                 }
-
                 break;
             }
             default:
@@ -243,27 +271,13 @@ public class SendSmsActivity extends Activity {
         }
     }
 
-    public boolean getPermissions(){
-        boolean hasPermission = (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED);
-        if (!hasPermission) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS}, SEND_SMS_REQUEST);
-        }
-        return hasPermission;
-    }
-
+    // Validates passed phone number
     public String parsePhoneNumber(String pNumber) throws IllegalArgumentException {
-    //    String parsed = pNumber.replaceAll(" ", "");
         if(pNumber.startsWith("+")|| pNumber.startsWith("0")){
             return pNumber;
         }
         else{
             throw new IllegalArgumentException(getString(error_invalid_ph_number, pNumber));
         }
-
-
-
-
-
     }
 }

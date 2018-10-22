@@ -24,7 +24,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:hint="Phone Number"
+                android:hint="@string/p_num_text_hint"
                 android:inputType="phone" />
 
             <Button
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="onSelectContactPressed"
-                android:text="Contacts"
+                android:text="@string/contacts_button"
                 tools:text="Contacts" />
 
         </LinearLayout>
@@ -51,7 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="Message"
+            android:hint="@string/message_text_hint"
             android:inputType="textLongMessage" />
 
         <Button
@@ -59,6 +59,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="onSendPressed"
-            android:text="Send" />
+            android:text="@string/send_button" />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
