@@ -43,7 +43,7 @@ import static android.dms.aut.ac.nz.myapplication.R.string.error_invalid_ph_numb
 /**
  * Activity for sending and receiving messages via SMS
  */
-public class SendSmsActivity extends Activity {
+public class SendSmsActivity extends Activity implements SMSListener {
     public static final int SEND_SMS_REQUEST = 1;
     public static final int REQUEST_CONTACT = 2;
 
@@ -86,17 +86,7 @@ public class SendSmsActivity extends Activity {
          * Notifies user when text is received and adds it to the messages list
          * if it is from the currently displayed phone number
          */
-        SMSReceiver.bindListener(new SMSListener() {
-            @Override
-            public void messageReceived(SmsMessage message) {
-                EditText pNumText = (EditText) findViewById(R.id.phoneText);
-                String pNum = pNumText.getText().toString();
-                Toast.makeText(getBaseContext(), getString(R.string.sms_received, message.getDisplayOriginatingAddress()), Toast.LENGTH_SHORT).show();
-                if(pNum.equalsIgnoreCase(message.getOriginatingAddress())){
-                    messagesAdapter.add(message.getDisplayMessageBody());
-                }
-            }
-        });
+        SMSReceiver.bindListener(this);
     }
 
     /**
@@ -184,7 +174,7 @@ public class SendSmsActivity extends Activity {
     }
 
     // Sends message (in message field) to selected phone number (in phone number field) via sms
-    public void sendMessage(){
+    private void sendMessage(){
         try {
             registerReceiver(new BroadcastReceiver() {
                 @Override
@@ -272,12 +262,22 @@ public class SendSmsActivity extends Activity {
     }
 
     // Validates passed phone number
-    public String parsePhoneNumber(String pNumber) throws IllegalArgumentException {
+    private String parsePhoneNumber(String pNumber) throws IllegalArgumentException {
         if(pNumber.startsWith("+")|| pNumber.startsWith("0")){
             return pNumber;
         }
         else{
             throw new IllegalArgumentException(getString(error_invalid_ph_number, pNumber));
+        }
+    }
+
+    @Override
+    public void messageReceived(SmsMessage message) {
+        EditText pNumText = (EditText) findViewById(R.id.phoneText);
+        String pNum = pNumText.getText().toString();
+        Toast.makeText(getBaseContext(), getString(R.string.sms_received, message.getDisplayOriginatingAddress()), Toast.LENGTH_SHORT).show();
+        if(pNum.equalsIgnoreCase(message.getOriginatingAddress())){
+            messagesAdapter.add(message.getDisplayMessageBody());
         }
     }
 }
